@@ -1,0 +1,33 @@
+﻿@page "/checkpolicy"
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+<h1>Check Policy</h1>
+
+<p>This component checks a policy in code.</p>
+
+<button @onclick="CheckThisPolicy">Check 'ApplicationTestGroup' policy</button>
+
+<p>Policy Message: @policyMessage</p>
+
+@code {
+    private string policyMessage = "Check hasn't been made yet.";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private async void CheckThisPolicy()
+    {
+        var user = (await authenticationStateTask).User;
+
+        if ((await AuthorizationService.AuthorizeAsync(user, 
+            "ApplicationTestGroup")).Succeeded)
+        {
+            policyMessage = "Yes! The 'ApplicationTestGroup' policy is met.";
+        }
+        else
+        {
+            policyMessage = "No! 'ApplicationTestGroup' policy is NOT met.";
+        }
+    }
+}

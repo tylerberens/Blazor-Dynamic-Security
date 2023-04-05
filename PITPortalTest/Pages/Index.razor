@@ -1,0 +1,74 @@
+﻿@page "/"
+@using PITPortalTest.Services
+@using System.Text.Json.Serialization
+@using System.Text.Json
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+@if(Pages != null)
+{
+   @foreach(var p in Pages)
+    {
+        <div class="card border-2 p-5 m-2">
+                <h1>@p.PageName</h1>
+                @foreach(var role in p.AuthorizedRoles)
+                {
+                    <p>@role <button class="btn btn-link" @onclick="() => DeleteRole(p, role)">delete</button></p>
+                }
+                @if(newRole.Item1 != null)
+                {
+                    @if (newRole.Item1.Id == p.Id)
+                    {
+                          <input style="max-width:200px;" class="form-control my-3" type="text" @bind="newRole.Item2" />
+                    }
+                }
+
+
+                <div class="btn-group-sm">
+                    <button @onclick="() => AddRole(p)" class="btn btn-primary">Add Role</button>
+                    <button @onclick="() => SaveRoles(p)" class="btn btn-success">Save Roles</button>
+                </div>
+ 
+
+        </div>
+
+    } 
+}
+
+
+
+@inject ICustomPages pageService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@code
+{
+    private (Page, string) newRole = (null, string.Empty);
+    public List<Page> Pages { get; set; }
+
+    private void AddRole(Page page)
+    {
+        newRole = (page, string.Empty);
+        StateHasChanged();
+    }
+    private async void DeleteRole(Page page, string role)
+    {
+        page.AuthorizedRoles.Remove(role);
+        await pageService.SavePages(Pages);
+        StateHasChanged();
+    }
+    private async void SaveRoles(Page page)
+    {
+        page.AuthorizedRoles.Add(newRole.Item2);
+        await pageService.SavePages(Pages);
+        newRole = (null, string.Empty);
+        StateHasChanged();
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Pages = await pageService.GetPages();
+    }
+}
